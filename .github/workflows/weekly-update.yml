@@ -29,13 +29,16 @@ jobs:
     
     - name: Send weekly calendar update
       env:
+        # Telegram Configuration
         TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
         ALLOWED_USER_IDS: ${{ secrets.ALLOWED_USER_IDS }}
         ADMIN_USER_ID: ${{ secrets.ADMIN_USER_ID }}
-        GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
-        GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
-        GOOGLE_REDIRECT_URI: ${{ secrets.GOOGLE_REDIRECT_URI }}
-        GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+        
+        # Google Calendar - Service Account
+        GOOGLE_SERVICE_ACCOUNT_KEY: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
+        GOOGLE_CALENDAR_OWNER_EMAIL: ${{ secrets.GOOGLE_CALENDAR_OWNER_EMAIL }}
+        
+        # Calendar Settings
         CALENDAR_ID: ${{ secrets.CALENDAR_ID }}
         TIMEZONE: ${{ secrets.TIMEZONE }}
       run: npm start

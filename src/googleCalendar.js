@@ -2,17 +2,25 @@ const { google } = require('googleapis');
 
 class GoogleCalendarService {
   constructor(credentials) {
-    this.oauth2Client = new google.auth.OAuth2(
-      credentials.clientId,
-      credentials.clientSecret,
-      credentials.redirectUri
-    );
+    if (!credentials.serviceAccountKey) {
+      throw new Error('Service Account key is required. OAuth is no longer supported.');
+    }
+
+    const serviceAccount = JSON.parse(credentials.serviceAccountKey);
     
-    this.oauth2Client.setCredentials({
-      refresh_token: credentials.refreshToken
+    this.auth = new google.auth.GoogleAuth({
+      credentials: serviceAccount,
+      scopes: ['https://www.googleapis.com/auth/calendar.readonly']
     });
     
-    this.calendar = google.calendar({ version: 'v3', auth: this.oauth2Client });
+    // If calendar owner email is provided, use domain-wide delegation
+    if (credentials.calendarOwnerEmail) {
+      this.auth = this.auth.createJWT({
+        subject: credentials.calendarOwnerEmail
+      });
+    }
+    
+    this.calendar = google.calendar({ version: 'v3', auth: this.auth });
     this.calendarId = credentials.calendarId || 'primary';
     this.timezone = credentials.timezone || 'America/New_York';
   }
@@ -62,11 +70,22 @@ class GoogleCalendarService {
 
   async testConnection() {
     try {
-      const response = await this.calendar.calendarList.list();
-      console.log('Google Calendar connection successful');
+      // For service accounts, test by getting calendar info
+      const response = await this.calendar.calendars.get({
+        calendarId: this.calendarId
+      });
+      console.log(`Google Calendar connection successful - Connected to: ${response.data.summary}`);
       return true;
     } catch (error) {
-      console.error('Google Calendar connection failed:', error);
+      console.error('Google Calendar connection failed:', error.message);
+      
+      // Provide helpful error messages
+      if (error.code === 404) {
+        console.error('Calendar not found. Make sure the calendar is shared with the service account or calendar ID is correct.');
+      } else if (error.code === 403) {
+        console.error('Access denied. Make sure the service account has calendar access.');
+      }
+      
       return false;
     }
   }

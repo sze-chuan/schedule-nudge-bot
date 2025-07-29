@@ -11,10 +11,8 @@ class ScheduleNudgeBot {
     );
     
     this.googleCalendar = new GoogleCalendarService({
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      redirectUri: process.env.GOOGLE_REDIRECT_URI,
-      refreshToken: process.env.GOOGLE_REFRESH_TOKEN,
+      serviceAccountKey: process.env.GOOGLE_SERVICE_ACCOUNT_KEY,
+      calendarOwnerEmail: process.env.GOOGLE_CALENDAR_OWNER_EMAIL,
       calendarId: process.env.CALENDAR_ID,
       timezone: process.env.TIMEZONE
     });

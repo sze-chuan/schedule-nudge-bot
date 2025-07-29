@@ -17,12 +17,15 @@ You need to add the following secrets to your GitHub repository:
 | `TELEGRAM_BOT_TOKEN` | Your Telegram bot token from @BotFather | `1234567890:ABCdefGHIjklMNOpqrsTUVwxyz` |
 | `ALLOWED_USER_IDS` | Comma-separated list of authorized user IDs | `123456789,987654321,555555555` |
 | `ADMIN_USER_ID` | Admin user ID for managing subscriptions | `123456789` |
-| `GOOGLE_CLIENT_ID` | Google OAuth Client ID | `abc123.apps.googleusercontent.com` |
-| `GOOGLE_CLIENT_SECRET` | Google OAuth Client Secret | `GOCSPX-xxxxxxxxxxxxx` |
-| `GOOGLE_REFRESH_TOKEN` | Google OAuth Refresh Token | `1//04xxxxxxxxxxxxxxxxx` |
-| `GOOGLE_REDIRECT_URI` | OAuth redirect URI | `http://localhost:3000/oauth2callback` |
 | `CALENDAR_ID` | Google Calendar ID (usually "primary") | `primary` |
 | `TIMEZONE` | Your timezone | `America/New_York` |
+
+### Google Calendar Authentication (Service Account Only)
+
+| Secret Name | Description | Example |
+|-------------|-------------|---------|
+| `GOOGLE_SERVICE_ACCOUNT_KEY` | JSON key file contents | `{"type":"service_account",...}` |
+| `GOOGLE_CALENDAR_OWNER_EMAIL` | Calendar owner email (optional) | `your-email@gmail.com` |
 
 ## How to Get User IDs
 
@@ -56,19 +59,17 @@ The bot now supports multiple users with access control:
 - `/add_user <user_id>` - Add user to authorized list
 - `/remove_user <user_id>` - Remove user from authorized list
 
-## How to Get Google Refresh Token
+## Google Calendar Setup
 
-### Option 1: OAuth Playground
-1. Go to [Google OAuth 2.0 Playground](https://developers.google.com/oauthplayground/)
-2. Click the gear icon (⚙️) and check "Use your own OAuth credentials"
-3. Enter your Client ID and Client Secret
-4. In Step 1, select "Google Calendar API v3" → `https://www.googleapis.com/auth/calendar.readonly`
-5. Click "Authorize APIs" and complete the OAuth flow
-6. In Step 2, click "Exchange authorization code for tokens"
-7. Copy the refresh_token from the response
+For detailed service account setup, see [SERVICE_ACCOUNT_SETUP.md](SERVICE_ACCOUNT_SETUP.md).
 
-### Option 2: Using the Google Client Libraries
-Run a local OAuth flow using the Google client libraries (more complex but programmatic).
+**Quick Steps:**
+1. Create Google Cloud project and enable Calendar API
+2. Create service account and download JSON key
+3. Share your calendar with the service account email
+4. Add `GOOGLE_SERVICE_ACCOUNT_KEY` secret with JSON contents
+
+**Note:** OAuth is no longer supported. Service accounts provide better security and reliability for automated processes.
 
 ## Schedule Configuration
 

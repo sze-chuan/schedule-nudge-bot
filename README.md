@@ -31,26 +31,26 @@ Fork this repository or clone it to your GitHub account.
 
 ### 3. Set Up Google Calendar API
 
-1. Go to [Google Cloud Console](https://console.cloud.google.com/)
-2. Create a new project or select existing one
-3. Enable the Google Calendar API
-4. Create credentials (OAuth 2.0 Client ID)
-5. Add `http://localhost:3000/oauth2callback` as redirect URI
-6. Get a refresh token (see detailed instructions in [GITHUB_ACTIONS_SETUP.md](GITHUB_ACTIONS_SETUP.md))
+1. Follow the detailed guide in [SERVICE_ACCOUNT_SETUP.md](SERVICE_ACCOUNT_SETUP.md)
+2. Create Google Cloud project and enable Calendar API
+3. Create service account and download JSON key
+4. Share your calendar with the service account email
 
 ### 4. Configure GitHub Secrets
 
 1. Go to your repository **Settings** → **Secrets and variables** → **Actions**
-2. Add the following repository secrets:
+2. Add the required repository secrets:
+
+**Required:**
    - `TELEGRAM_BOT_TOKEN`
    - `ALLOWED_USER_IDS` (comma-separated user IDs: "123456789,987654321")
-   - `ADMIN_USER_ID` (optional: for managing users)
-   - `GOOGLE_CLIENT_ID`
-   - `GOOGLE_CLIENT_SECRET`
-   - `GOOGLE_REFRESH_TOKEN`
-   - `GOOGLE_REDIRECT_URI`
+   - `GOOGLE_SERVICE_ACCOUNT_KEY` (JSON key file contents)
    - `CALENDAR_ID` (usually "primary")
    - `TIMEZONE` (e.g., "America/New_York")
+
+**Optional:**
+   - `ADMIN_USER_ID` (for user management)
+   - `GOOGLE_CALENDAR_OWNER_EMAIL` (for domain-wide delegation)
 
 ### 5. Test the Setup
 
