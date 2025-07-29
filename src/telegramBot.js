@@ -1,24 +1,229 @@
 const TelegramBot = require('node-telegram-bot-api');
 
 class TelegramBotService {
-  constructor(token, chatId) {
-    this.bot = new TelegramBot(token, { polling: false });
-    this.chatId = chatId;
+  constructor(token, allowedUserIds, adminUserId = null) {
+    this.bot = new TelegramBot(token, { polling: true });
+    this.allowedUserIds = this.parseUserIds(allowedUserIds);
+    this.adminUserId = adminUserId ? parseInt(adminUserId) : null;
+    this.subscribedUsers = new Set(this.allowedUserIds);
+    
+    this.setupBotHandlers();
   }
 
-  async sendMessage(message) {
+  parseUserIds(userIdsString) {
+    if (!userIdsString) return [];
+    return userIdsString.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
+  }
+
+  isAuthorizedUser(userId) {
+    return this.allowedUserIds.includes(userId);
+  }
+
+  isAdmin(userId) {
+    return this.adminUserId && userId === this.adminUserId;
+  }
+
+  setupBotHandlers() {
+    this.bot.on('message', async (msg) => {
+      const userId = msg.from.id;
+      const chatId = msg.chat.id;
+      const text = msg.text;
+
+      console.log(`Message from user ${userId}: ${text}`);
+
+      if (!this.isAuthorizedUser(userId)) {
+        await this.bot.sendMessage(chatId, '❌ You are not authorized to use this bot. Contact the administrator for access.');
+        return;
+      }
+
+      if (text === '/start') {
+        await this.handleStartCommand(chatId, userId);
+      } else if (text === '/subscribe') {
+        await this.handleSubscribeCommand(chatId, userId);
+      } else if (text === '/unsubscribe') {
+        await this.handleUnsubscribeCommand(chatId, userId);
+      } else if (text === '/status') {
+        await this.handleStatusCommand(chatId, userId);
+      } else if (text === '/help') {
+        await this.handleHelpCommand(chatId);
+      } else if (text === '/users' && this.isAdmin(userId)) {
+        await this.handleUsersCommand(chatId);
+      } else if (text.startsWith('/add_user') && this.isAdmin(userId)) {
+        await this.handleAddUserCommand(chatId, text);
+      } else if (text.startsWith('/remove_user') && this.isAdmin(userId)) {
+        await this.handleRemoveUserCommand(chatId, text);
+      }
+    });
+
+    this.bot.on('polling_error', (error) => {
+      console.error('Polling error:', error);
+    });
+  }
+
+  async handleStartCommand(chatId, userId) {
+    const welcomeMessage = `
+🤖 *Schedule Nudge Bot*
+
+Welcome! I can send you weekly calendar updates every Sunday evening.
+
+Your User ID: \`${userId}\`
+
+Available commands:
+/subscribe - Subscribe to weekly updates
+/unsubscribe - Unsubscribe from updates  
+/status - Check your subscription status
+/help - Show this help message
+
+To get started, use /subscribe to receive weekly calendar updates.
+    `;
+    
+    await this.bot.sendMessage(chatId, welcomeMessage, { parse_mode: 'Markdown' });
+  }
+
+  async handleSubscribeCommand(chatId, userId) {
+    this.subscribedUsers.add(userId);
+    await this.bot.sendMessage(chatId, '✅ You have been subscribed to weekly calendar updates!');
+  }
+
+  async handleUnsubscribeCommand(chatId, userId) {
+    this.subscribedUsers.delete(userId);
+    await this.bot.sendMessage(chatId, '❌ You have been unsubscribed from weekly calendar updates.');
+  }
+
+  async handleStatusCommand(chatId, userId) {
+    const isSubscribed = this.subscribedUsers.has(userId);
+    const status = isSubscribed ? '✅ Subscribed' : '❌ Not subscribed';
+    await this.bot.sendMessage(chatId, `Your status: ${status}`);
+  }
+
+  async handleHelpCommand(chatId) {
+    const helpMessage = `
+🤖 *Schedule Nudge Bot Commands*
+
+*User Commands:*
+/start - Welcome message and setup
+/subscribe - Subscribe to weekly updates
+/unsubscribe - Unsubscribe from updates
+/status - Check subscription status
+/help - Show this help
+
+*Features:*
+• Weekly calendar updates every Sunday at 6 PM
+• Automatic Google Calendar integration
+• Formatted messages with event details
+
+Need help? Contact your bot administrator.
+    `;
+    
+    await this.bot.sendMessage(chatId, helpMessage, { parse_mode: 'Markdown' });
+  }
+
+  async handleUsersCommand(chatId) {
+    const authorizedCount = this.allowedUserIds.length;
+    const subscribedCount = this.subscribedUsers.size;
+    const subscribedList = Array.from(this.subscribedUsers).join(', ');
+    
+    const message = `
+👥 *User Management*
+
+Authorized users: ${authorizedCount}
+Subscribed users: ${subscribedCount}
+Subscribed user IDs: ${subscribedList || 'None'}
+
+*Admin Commands:*
+\`/add_user <user_id>\` - Add user to authorized list
+\`/remove_user <user_id>\` - Remove user from authorized list
+    `;
+    
+    await this.bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
+  }
+
+  async handleAddUserCommand(chatId, text) {
+    const parts = text.split(' ');
+    if (parts.length !== 2) {
+      await this.bot.sendMessage(chatId, '❌ Usage: /add_user <user_id>');
+      return;
+    }
+    
+    const newUserId = parseInt(parts[1]);
+    if (isNaN(newUserId)) {
+      await this.bot.sendMessage(chatId, '❌ Invalid user ID. Must be a number.');
+      return;
+    }
+    
+    if (this.allowedUserIds.includes(newUserId)) {
+      await this.bot.sendMessage(chatId, '⚠️ User is already authorized.');
+      return;
+    }
+    
+    this.allowedUserIds.push(newUserId);
+    await this.bot.sendMessage(chatId, `✅ User ${newUserId} has been added to the authorized list.`);
+  }
+
+  async handleRemoveUserCommand(chatId, text) {
+    const parts = text.split(' ');
+    if (parts.length !== 2) {
+      await this.bot.sendMessage(chatId, '❌ Usage: /remove_user <user_id>');
+      return;
+    }
+    
+    const userIdToRemove = parseInt(parts[1]);
+    if (isNaN(userIdToRemove)) {
+      await this.bot.sendMessage(chatId, '❌ Invalid user ID. Must be a number.');
+      return;
+    }
+    
+    const index = this.allowedUserIds.indexOf(userIdToRemove);
+    if (index === -1) {
+      await this.bot.sendMessage(chatId, '⚠️ User is not in the authorized list.');
+      return;
+    }
+    
+    this.allowedUserIds.splice(index, 1);
+    this.subscribedUsers.delete(userIdToRemove);
+    await this.bot.sendMessage(chatId, `✅ User ${userIdToRemove} has been removed from the authorized list.`);
+  }
+
+  stopPolling() {
+    this.bot.stopPolling();
+  }
+
+  async sendWeeklyUpdateToSubscribers(events) {
+    const message = this.formatWeeklyMessage(events);
+    let successCount = 0;
+    let errorCount = 0;
+
+    console.log(`Sending weekly update to ${this.subscribedUsers.size} subscribed users`);
+
+    for (const userId of this.subscribedUsers) {
+      try {
+        await this.bot.sendMessage(userId, message, { parse_mode: 'Markdown' });
+        successCount++;
+        console.log(`Weekly update sent to user ${userId}`);
+      } catch (error) {
+        errorCount++;
+        console.error(`Error sending to user ${userId}:`, error.message);
+        
+        // Remove user if they blocked the bot or chat doesn't exist
+        if (error.response && [403, 400].includes(error.response.statusCode)) {
+          console.log(`Removing user ${userId} from subscription (blocked bot or invalid chat)`);
+          this.subscribedUsers.delete(userId);
+        }
+      }
+    }
+
+    console.log(`Weekly update summary: ${successCount} sent, ${errorCount} failed`);
+    return { successCount, errorCount };
+  }
+
+  async sendDirectMessage(userId, message) {
     try {
-      await this.bot.sendMessage(this.chatId, message, { parse_mode: 'Markdown' });
-      console.log('Weekly update sent successfully');
+      await this.bot.sendMessage(userId, message, { parse_mode: 'Markdown' });
+      console.log(`Direct message sent to user ${userId}`);
     } catch (error) {
-      console.error('Error sending Telegram message:', error);
+      console.error(`Error sending direct message to user ${userId}:`, error);
       throw error;
     }
-  }
-
-  async sendWeeklyUpdate(events) {
-    const message = this.formatWeeklyMessage(events);
-    await this.sendMessage(message);
   }
 
   formatWeeklyMessage(events) {

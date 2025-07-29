@@ -10,6 +10,8 @@ A serverless Telegram bot that connects to your Google Calendar and sends you we
 - 🔄 Groups events by day with time and location details
 - 🛡️ Robust error handling and connection testing
 - 🚀 **Serverless** - No need to keep a machine running!
+- 👥 **Multi-user support** - Control who can access the bot
+- 🔐 **Access control** - Users must be authorized and subscribed
 
 ## Quick Setup (GitHub Actions)
 
@@ -22,8 +24,10 @@ Fork this repository or clone it to your GitHub account.
 1. Message [@BotFather](https://t.me/BotFather) on Telegram
 2. Send `/newbot` and follow the instructions
 3. Save the bot token you receive
-4. Start a chat with your bot and send any message
-5. Get your chat ID by visiting: `https://api.telegram.org/bot<YOUR_BOT_TOKEN>/getUpdates`
+4. Get user IDs who should have access:
+   - Have each user message your bot
+   - Use `/start` command to see their user ID
+   - Or visit: `https://api.telegram.org/bot<YOUR_BOT_TOKEN>/getUpdates`
 
 ### 3. Set Up Google Calendar API
 
@@ -39,7 +43,8 @@ Fork this repository or clone it to your GitHub account.
 1. Go to your repository **Settings** → **Secrets and variables** → **Actions**
 2. Add the following repository secrets:
    - `TELEGRAM_BOT_TOKEN`
-   - `TELEGRAM_CHAT_ID`
+   - `ALLOWED_USER_IDS` (comma-separated user IDs: "123456789,987654321")
+   - `ADMIN_USER_ID` (optional: for managing users)
    - `GOOGLE_CLIENT_ID`
    - `GOOGLE_CLIENT_SECRET`
    - `GOOGLE_REFRESH_TOKEN`

@@ -30,7 +30,8 @@ jobs:
     - name: Send weekly calendar update
       env:
         TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        ALLOWED_USER_IDS: ${{ secrets.ALLOWED_USER_IDS }}
+        ADMIN_USER_ID: ${{ secrets.ADMIN_USER_ID }}
         GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
         GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
         GOOGLE_REDIRECT_URI: ${{ secrets.GOOGLE_REDIRECT_URI }}

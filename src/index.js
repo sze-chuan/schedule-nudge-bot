@@ -6,7 +6,8 @@ class ScheduleNudgeBot {
   constructor() {
     this.telegramBot = new TelegramBotService(
       process.env.TELEGRAM_BOT_TOKEN,
-      process.env.TELEGRAM_CHAT_ID
+      process.env.ALLOWED_USER_IDS,
+      process.env.ADMIN_USER_ID
     );
     
     this.googleCalendar = new GoogleCalendarService({
@@ -34,6 +35,9 @@ class ScheduleNudgeBot {
     // Send weekly update and exit
     await this.sendWeeklyUpdate();
     console.log('Weekly update completed');
+    
+    // Stop polling to allow process to exit
+    this.telegramBot.stopPolling();
   }
 
   async testConnections() {
@@ -42,13 +46,9 @@ class ScheduleNudgeBot {
       throw new Error('Google Calendar connection failed');
     }
 
-    // Test Telegram by sending a startup message
-    try {
-      await this.telegramBot.sendMessage('🤖 Schedule Nudge Bot is now active!');
-      console.log('Telegram connection successful');
-    } catch (error) {
-      throw new Error('Telegram connection failed: ' + error.message);
-    }
+    // For GitHub Actions, we just test that the bot can be created
+    // No need to send a startup message since it's automated
+    console.log('Telegram bot initialized successfully');
   }
 
   async sendWeeklyUpdate() {
@@ -57,18 +57,15 @@ class ScheduleNudgeBot {
       const events = await this.googleCalendar.getWeeklyEvents();
       
       console.log('Sending weekly update via Telegram...');
-      await this.telegramBot.sendWeeklyUpdate(events);
+      const result = await this.telegramBot.sendWeeklyUpdateToSubscribers(events);
       
-      console.log('Weekly update sent successfully');
+      console.log(`Weekly update completed: ${result.successCount} sent, ${result.errorCount} failed`);
     } catch (error) {
       console.error('Error sending weekly update:', error);
       
-      // Send error notification to user
-      try {
-        await this.telegramBot.sendMessage('❌ Error occurred while fetching your weekly schedule. Please check the bot logs.');
-      } catch (telegramError) {
-        console.error('Failed to send error notification:', telegramError);
-      }
+      // For GitHub Actions, we don't need to send error notifications
+      // The logs will show the error details
+      throw error;
     }
   }
 
