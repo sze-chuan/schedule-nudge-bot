@@ -1,5 +1,4 @@
 require('dotenv').config();
-const cron = require('node-cron');
 const TelegramBotService = require('./telegramBot');
 const GoogleCalendarService = require('./googleCalendar');
 
@@ -20,8 +19,8 @@ class ScheduleNudgeBot {
     });
   }
 
-  async start() {
-    console.log('Schedule Nudge Bot starting...');
+  async run() {
+    console.log('Schedule Nudge Bot running...');
     
     // Test connections
     try {
@@ -32,18 +31,9 @@ class ScheduleNudgeBot {
       process.exit(1);
     }
 
-    // Schedule weekly updates for Sunday at 6 PM
-    // Cron format: second minute hour day month dayOfWeek
-    // 0 18 * * 0 = every Sunday at 6 PM
-    cron.schedule('0 18 * * 0', async () => {
-      console.log('Running weekly update...');
-      await this.sendWeeklyUpdate();
-    }, {
-      timezone: process.env.TIMEZONE || 'America/New_York'
-    });
-
-    console.log('Bot is running. Weekly updates scheduled for Sundays at 6 PM');
-    console.log('Press Ctrl+C to stop the bot');
+    // Send weekly update and exit
+    await this.sendWeeklyUpdate();
+    console.log('Weekly update completed');
   }
 
   async testConnections() {
@@ -82,11 +72,6 @@ class ScheduleNudgeBot {
     }
   }
 
-  // Manual trigger for testing
-  async sendManualUpdate() {
-    console.log('Sending manual weekly update...');
-    await this.sendWeeklyUpdate();
-  }
 }
 
 // Handle graceful shutdown
@@ -100,23 +85,9 @@ process.on('SIGTERM', () => {
   process.exit(0);
 });
 
-// Start the bot
+// Run the bot
 const bot = new ScheduleNudgeBot();
-
-// Check if this is a manual trigger
-if (process.argv.includes('--manual')) {
-  bot.sendManualUpdate()
-    .then(() => {
-      console.log('Manual update completed');
-      process.exit(0);
-    })
-    .catch(error => {
-      console.error('Manual update failed:', error);
-      process.exit(1);
-    });
-} else {
-  bot.start().catch(error => {
-    console.error('Failed to start bot:', error);
-    process.exit(1);
-  });
-}
+bot.run().catch(error => {
+  console.error('Bot execution failed:', error);
+  process.exit(1);
+});

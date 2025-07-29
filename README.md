@@ -1,22 +1,21 @@
 # Schedule Nudge Bot
 
-A Telegram bot that connects to your Google Calendar and sends you weekly schedule updates every Sunday evening before your new week starts.
+A serverless Telegram bot that connects to your Google Calendar and sends you weekly schedule updates every Sunday evening using GitHub Actions.
 
 ## Features
 
 - 📅 Fetches events from Google Calendar for the upcoming week
 - 📱 Sends formatted updates via Telegram
-- ⏰ Automatically runs every Sunday at 6 PM
+- ⏰ Automatically runs every Sunday at 6 PM using GitHub Actions
 - 🔄 Groups events by day with time and location details
 - 🛡️ Robust error handling and connection testing
+- 🚀 **Serverless** - No need to keep a machine running!
 
-## Setup
+## Quick Setup (GitHub Actions)
 
-### 1. Install Dependencies
+### 1. Fork/Clone this Repository
 
-```bash
-npm install
-```
+Fork this repository or clone it to your GitHub account.
 
 ### 2. Create Telegram Bot
 
@@ -33,59 +32,41 @@ npm install
 3. Enable the Google Calendar API
 4. Create credentials (OAuth 2.0 Client ID)
 5. Add `http://localhost:3000/oauth2callback` as redirect URI
-6. Download the credentials JSON
+6. Get a refresh token (see detailed instructions in [GITHUB_ACTIONS_SETUP.md](GITHUB_ACTIONS_SETUP.md))
 
-### 4. Configure Environment
+### 4. Configure GitHub Secrets
+
+1. Go to your repository **Settings** → **Secrets and variables** → **Actions**
+2. Add the following repository secrets:
+   - `TELEGRAM_BOT_TOKEN`
+   - `TELEGRAM_CHAT_ID`
+   - `GOOGLE_CLIENT_ID`
+   - `GOOGLE_CLIENT_SECRET`
+   - `GOOGLE_REFRESH_TOKEN`
+   - `GOOGLE_REDIRECT_URI`
+   - `CALENDAR_ID` (usually "primary")
+   - `TIMEZONE` (e.g., "America/New_York")
+
+### 5. Test the Setup
+
+1. Go to **Actions** tab in your repository
+2. Find "Weekly Calendar Update" workflow
+3. Click **Run workflow** to test manually
+
+## Detailed Setup Instructions
+
+For complete setup instructions including how to get OAuth tokens, see [GITHUB_ACTIONS_SETUP.md](GITHUB_ACTIONS_SETUP.md).
+
+## Local Development (Optional)
+
+If you want to test locally:
 
 ```bash
+npm install
 cp .env.example .env
-```
-
-Fill in your `.env` file with:
-- `TELEGRAM_BOT_TOKEN`: Your bot token from BotFather
-- `TELEGRAM_CHAT_ID`: Your chat ID from step 2
-- `GOOGLE_CLIENT_ID`: From your Google credentials
-- `GOOGLE_CLIENT_SECRET`: From your Google credentials
-- `GOOGLE_REFRESH_TOKEN`: You'll get this after OAuth setup
-- `CALENDAR_ID`: Usually "primary" for your main calendar
-- `TIMEZONE`: Your timezone (e.g., "America/New_York")
-
-### 5. Google OAuth Setup (One-time)
-
-You'll need to complete the OAuth flow once to get a refresh token:
-
-1. Run the bot initially - it will guide you through OAuth
-2. Or use Google's OAuth playground to get a refresh token
-3. Update your `.env` file with the refresh token
-
-## Usage
-
-### Start the Bot
-
-```bash
+# Fill in your .env file
 npm start
 ```
-
-The bot will:
-- Test connections to Telegram and Google Calendar
-- Schedule weekly updates for Sunday 6 PM
-- Run continuously until stopped
-
-### Manual Testing
-
-```bash
-npm run dev -- --manual
-```
-
-This sends an immediate weekly update for testing purposes.
-
-### Development Mode
-
-```bash
-npm run dev
-```
-
-Uses nodemon for automatic restarts during development.
 
 ## Project Structure
 
