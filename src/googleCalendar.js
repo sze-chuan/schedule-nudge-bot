@@ -1,12 +1,12 @@
 const { google } = require('googleapis');
 
 class GoogleCalendarService {
-  constructor(credentials) {
-    if (!credentials.serviceAccountKey) {
+  constructor(config) {
+    if (!config.serviceAccountKey) {
       throw new Error('Service Account key is required. OAuth is no longer supported.');
     }
 
-    const serviceAccount = JSON.parse(credentials.serviceAccountKey);
+    const serviceAccount = JSON.parse(config.serviceAccountKey);
     
     this.auth = new google.auth.GoogleAuth({
       credentials: serviceAccount,
@@ -14,18 +14,18 @@ class GoogleCalendarService {
     });
     
     // If calendar owner email is provided, use domain-wide delegation
-    if (credentials.calendarOwnerEmail) {
+    if (config.calendarOwnerEmail) {
       this.auth = new google.auth.JWT({
         email: serviceAccount.client_email,
         key: serviceAccount.private_key,
         scopes: ['https://www.googleapis.com/auth/calendar.readonly'],
-        subject: credentials.calendarOwnerEmail
+        subject: config.calendarOwnerEmail
       });
     }
     
     this.calendar = google.calendar({ version: 'v3', auth: this.auth });
-    this.calendarId = credentials.calendarId || 'primary';
-    this.timezone = credentials.timezone || 'America/New_York';
+    this.calendarId = config.calendarId || 'primary';
+    this.timezone = config.timezone || 'America/New_York';
   }
 
   async getWeeklyEvents() {

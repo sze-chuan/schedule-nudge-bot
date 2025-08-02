@@ -232,16 +232,6 @@ Subscribed user IDs: ${subscribedList || 'None'}
     return { successCount, errorCount };
   }
 
-  async sendDirectMessage(userId, message) {
-    try {
-      await this.bot.sendMessage(userId, message, { parse_mode: 'Markdown' });
-      console.log(`Direct message sent to user ${userId}`);
-    } catch (error) {
-      console.error(`Error sending direct message to user ${userId}:`, error);
-      throw error;
-    }
-  }
-
   async testTelegramConnection() {
     try {
       const me = await this.bot.getMe();
@@ -280,7 +270,7 @@ Subscribed user IDs: ${subscribedList || 'None'}
 
   groupEventsByDay(events) {
     const grouped = {};
-    const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
     
     events.forEach(event => {
       const startDate = new Date(event.start.dateTime || event.start.date);
@@ -300,13 +290,13 @@ Subscribed user IDs: ${subscribedList || 'None'}
       return 'All day';
     }
     
-    const startTime = new Date(event.start.dateTime).toLocaleTimeString('en-US', {
+    const startTime = new Date(event.start.dateTime).toLocaleTimeString('en-SG', {
       hour: 'numeric',
       minute: '2-digit',
       hour12: true
     });
     
-    const endTime = new Date(event.end.dateTime).toLocaleTimeString('en-US', {
+    const endTime = new Date(event.end.dateTime).toLocaleTimeString('en-SG', {
       hour: 'numeric',
       minute: '2-digit',
       hour12: true

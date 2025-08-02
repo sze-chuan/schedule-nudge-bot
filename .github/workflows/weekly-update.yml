@@ -2,10 +2,10 @@ name: Weekly Calendar Update
 
 on:
   schedule:
-    # Runs every Sunday at 6 PM UTC (adjust timezone as needed)
+    # Runs every Sunday at 8 PM UTC (adjust timezone as needed)
     # Format: minute hour day month day-of-week
-    # 0 18 * * 0 = every Sunday at 6 PM
-    - cron: '0 18 * * 0'
+    # 0 12 * * 0 = every Sunday at 6 PM
+    - cron: '0 12 * * 0'
   
   # Allow manual triggering for testing
   workflow_dispatch:
