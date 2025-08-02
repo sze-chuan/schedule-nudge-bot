@@ -9,16 +9,25 @@
     "dev": "nodemon src/index.js --interactive",
     "test": "jest"
   },
-  "keywords": ["telegram", "bot", "google-calendar", "scheduler"],
+  "keywords": [
+    "telegram",
+    "bot",
+    "google-calendar",
+    "scheduler"
+  ],
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "node-telegram-bot-api": "^0.66.0",
+    "dotenv": "^16.4.5",
     "googleapis": "^134.0.0",
-    "dotenv": "^16.4.5"
+    "node-telegram-bot-api": "^0.66.0"
   },
   "devDependencies": {
-    "nodemon": "^3.0.3",
-    "jest": "^29.7.0"
+    "jest": "^29.7.0",
+    "nodemon": "^3.0.3"
+  },
+  "overrides": {
+    "form-data": "^4.0.0",
+    "tough-cookie": "^4.1.3"
   }
 }
