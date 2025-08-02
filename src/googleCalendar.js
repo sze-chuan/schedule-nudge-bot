@@ -15,7 +15,10 @@ class GoogleCalendarService {
     
     // If calendar owner email is provided, use domain-wide delegation
     if (credentials.calendarOwnerEmail) {
-      this.auth = this.auth.createJWT({
+      this.auth = new google.auth.JWT({
+        email: serviceAccount.client_email,
+        key: serviceAccount.private_key,
+        scopes: ['https://www.googleapis.com/auth/calendar.readonly'],
         subject: credentials.calendarOwnerEmail
       });
     }

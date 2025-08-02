@@ -5,7 +5,8 @@
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
-    "dev": "nodemon src/index.js",
+    "interactive": "node src/index.js --interactive",
+    "dev": "nodemon src/index.js --interactive",
     "test": "jest"
   },
   "keywords": ["telegram", "bot", "google-calendar", "scheduler"],

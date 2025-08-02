@@ -153,21 +153,3 @@ To test your service account setup:
 4. Verify that calendar events are being fetched
 
 The logs should show: `Google Calendar connection successful - Connected to: [Calendar Name]`
-
-## Migration from OAuth
-
-If you were previously using OAuth:
-
-1. Remove the old OAuth secrets from GitHub:
-   - `GOOGLE_CLIENT_ID`
-   - `GOOGLE_CLIENT_SECRET` 
-   - `GOOGLE_REFRESH_TOKEN`
-   - `GOOGLE_REDIRECT_URI`
-
-2. Add the new service account secrets:
-   - `GOOGLE_SERVICE_ACCOUNT_KEY`
-   - `GOOGLE_CALENDAR_OWNER_EMAIL` (if needed)
-
-3. Test the new setup manually
-
-The bot will now use Service Account authentication exclusively.

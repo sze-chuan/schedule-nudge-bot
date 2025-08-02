@@ -1,13 +1,28 @@
 const TelegramBot = require('node-telegram-bot-api');
 
 class TelegramBotService {
-  constructor(token, allowedUserIds, adminUserId = null) {
-    this.bot = new TelegramBot(token, { polling: true });
+  constructor(token, allowedUserIds, adminUserId = null, interactiveMode = false) {
+    // Configure bot with request options to handle SSL/network issues
+    const botOptions = {
+      polling: interactiveMode,
+      request: {
+        agentOptions: {
+          keepAlive: true,
+          family: 4 // Force IPv4
+        }
+      }
+    };
+    
+    this.bot = new TelegramBot(token, botOptions);
     this.allowedUserIds = this.parseUserIds(allowedUserIds);
     this.adminUserId = adminUserId ? parseInt(adminUserId) : null;
     this.subscribedUsers = new Set(this.allowedUserIds);
+    this.interactiveMode = interactiveMode;
     
-    this.setupBotHandlers();
+    // Setup handlers for interactive mode
+    if (interactiveMode) {
+      this.setupBotHandlers();
+    }
   }
 
   parseUserIds(userIdsString) {
@@ -203,6 +218,7 @@ Subscribed user IDs: ${subscribedList || 'None'}
       } catch (error) {
         errorCount++;
         console.error(`Error sending to user ${userId}:`, error.message);
+        console.error('Full error details:', error);
         
         // Remove user if they blocked the bot or chat doesn't exist
         if (error.response && [403, 400].includes(error.response.statusCode)) {
@@ -223,6 +239,17 @@ Subscribed user IDs: ${subscribedList || 'None'}
     } catch (error) {
       console.error(`Error sending direct message to user ${userId}:`, error);
       throw error;
+    }
+  }
+
+  async testTelegramConnection() {
+    try {
+      const me = await this.bot.getMe();
+      console.log(`Telegram bot connection test successful: ${me.username}`);
+      return true;
+    } catch (error) {
+      console.error('Telegram bot connection test failed:', error);
+      return false;
     }
   }
 

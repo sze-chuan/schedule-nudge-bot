@@ -3,11 +3,13 @@ const TelegramBotService = require('./telegramBot');
 const GoogleCalendarService = require('./googleCalendar');
 
 class ScheduleNudgeBot {
-  constructor() {
+  constructor(interactiveMode = false) {
+    this.interactiveMode = interactiveMode;
     this.telegramBot = new TelegramBotService(
       process.env.TELEGRAM_BOT_TOKEN,
       process.env.ALLOWED_USER_IDS,
-      process.env.ADMIN_USER_ID
+      process.env.ADMIN_USER_ID,
+      interactiveMode
     );
     
     this.googleCalendar = new GoogleCalendarService({
@@ -19,7 +21,7 @@ class ScheduleNudgeBot {
   }
 
   async run() {
-    console.log('Schedule Nudge Bot running...');
+    console.log(`Schedule Nudge Bot running${this.interactiveMode ? ' in interactive mode' : ''}...`);
     
     // Test connections
     try {
@@ -30,12 +32,18 @@ class ScheduleNudgeBot {
       process.exit(1);
     }
 
-    // Send weekly update and exit
-    await this.sendWeeklyUpdate();
-    console.log('Weekly update completed');
-    
-    // Stop polling to allow process to exit
-    this.telegramBot.stopPolling();
+    if (this.interactiveMode) {
+      console.log('🤖 Bot is now listening for messages. Send /help to see available commands.');
+      console.log('Press Ctrl+C to stop the bot.');
+      // Keep running for interactive mode
+    } else {
+      // Send weekly update and exit (serverless mode)
+      await this.sendWeeklyUpdate();
+      console.log('Weekly update completed');
+      
+      // Stop polling to allow process to exit
+      this.telegramBot.stopPolling();
+    }
   }
 
   async testConnections() {
@@ -44,9 +52,11 @@ class ScheduleNudgeBot {
       throw new Error('Google Calendar connection failed');
     }
 
-    // For GitHub Actions, we just test that the bot can be created
-    // No need to send a startup message since it's automated
-    console.log('Telegram bot initialized successfully');
+    // Test Telegram bot connection
+    const telegramConnected = await this.telegramBot.testTelegramConnection();
+    if (!telegramConnected) {
+      throw new Error('Telegram bot connection failed');
+    }
   }
 
   async sendWeeklyUpdate() {
@@ -80,8 +90,11 @@ process.on('SIGTERM', () => {
   process.exit(0);
 });
 
+// Check if running in interactive mode (for local testing)
+const isInteractive = process.argv.includes('--interactive') || process.argv.includes('-i');
+
 // Run the bot
-const bot = new ScheduleNudgeBot();
+const bot = new ScheduleNudgeBot(isInteractive);
 bot.run().catch(error => {
   console.error('Bot execution failed:', error);
   process.exit(1);
