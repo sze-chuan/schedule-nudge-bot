@@ -48,7 +48,11 @@ class GoogleCalendarService {
       const events = response.data.items || [];
       console.log(`Found ${events.length} events for the week`);
       
-      return events.filter(event => !event.cancelled);
+      return {
+        events: events.filter(event => !event.cancelled),
+        startDate: startOfWeek,
+        endDate: endOfWeek
+      };
     } catch (error) {
       console.error('Error fetching calendar events:', error);
       throw error;

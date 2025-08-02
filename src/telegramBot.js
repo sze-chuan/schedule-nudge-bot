@@ -203,8 +203,8 @@ Subscribed user IDs: ${subscribedList || 'None'}
     this.bot.stopPolling();
   }
 
-  async sendWeeklyUpdateToSubscribers(events) {
-    const message = this.formatWeeklyMessage(events);
+  async sendWeeklyUpdateToSubscribers(events, startDate = null, endDate = null) {
+    const message = this.formatWeeklyMessage(events, startDate, endDate);
     let successCount = 0;
     let errorCount = 0;
 
@@ -243,12 +243,14 @@ Subscribed user IDs: ${subscribedList || 'None'}
     }
   }
 
-  formatWeeklyMessage(events) {
+  formatWeeklyMessage(events, startDate, endDate) {
+    const weekDateRange = this.formatWeekDateRange(startDate, endDate);
+
     if (events.length === 0) {
-      return `📅 *Weekly Schedule Update*\n\nYou have no events scheduled for the upcoming week. Enjoy your free time! 🎉`;
+      return `📅 *Weekly Schedule Update*\n${weekDateRange}\n\nYou have no events scheduled for the upcoming week. Enjoy your free time! 🎉`;
     }
 
-    let message = `📅 *Weekly Schedule Update*\n\nHere's what you have coming up this week:\n\n`;
+    let message = `📅 *Weekly Schedule Update*\n${weekDateRange}\n\nHere's what you have coming up this week:\n\n`;
     
     const eventsByDay = this.groupEventsByDay(events);
     
@@ -303,6 +305,22 @@ Subscribed user IDs: ${subscribedList || 'None'}
     });
     
     return `${startTime} - ${endTime}`;
+  }
+
+  formatWeekDateRange(startDate, endDate) {
+    const options = { month: 'short', day: 'numeric' };
+    const startFormatted = startDate.toLocaleDateString('en-SG', options);
+    const endFormatted = endDate.toLocaleDateString('en-SG', options);
+    
+    // If same year, show year only once at the end
+    const startYear = startDate.getFullYear();
+    const endYear = endDate.getFullYear();
+    
+    if (startYear === endYear) {
+      return `*${startFormatted} - ${endFormatted}, ${endYear}*`;
+    } else {
+      return `*${startFormatted}, ${startYear} - ${endFormatted}, ${endYear}*`;
+    }
   }
 }
 

@@ -62,10 +62,10 @@ class ScheduleNudgeBot {
   async sendWeeklyUpdate() {
     try {
       console.log('Fetching weekly events...');
-      const events = await this.googleCalendar.getWeeklyEvents();
+      const weeklyData = await this.googleCalendar.getWeeklyEvents();
       
       console.log('Sending weekly update via Telegram...');
-      const result = await this.telegramBot.sendWeeklyUpdateToSubscribers(events);
+      const result = await this.telegramBot.sendWeeklyUpdateToSubscribers(weeklyData.events, weeklyData.startDate, weeklyData.endDate);
       
       console.log(`Weekly update completed: ${result.successCount} sent, ${result.errorCount} failed`);
     } catch (error) {
