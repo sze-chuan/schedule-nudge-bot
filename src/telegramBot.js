@@ -272,7 +272,7 @@ Subscribed user IDs: ${subscribedList || 'None'}
 
   groupEventsByDay(events) {
     const grouped = {};
-    const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     
     events.forEach(event => {
       const startDate = new Date(event.start.dateTime || event.start.date);
