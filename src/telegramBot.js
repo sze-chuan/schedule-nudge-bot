@@ -292,16 +292,18 @@ Subscribed user IDs: ${subscribedList || 'None'}
       return 'All day';
     }
     
-    const startTime = new Date(event.start.dateTime).toLocaleTimeString('en-SG', {
+    const startTime = new Date(event.start.dateTime).toLocaleTimeString('en-US', {
       hour: 'numeric',
       minute: '2-digit',
-      hour12: true
+      hour12: true,
+      timeZone: 'Asia/Singapore'
     });
     
-    const endTime = new Date(event.end.dateTime).toLocaleTimeString('en-SG', {
+    const endTime = new Date(event.end.dateTime).toLocaleTimeString('en-US', {
       hour: 'numeric',
       minute: '2-digit',
-      hour12: true
+      hour12: true,
+      timeZone: 'Asia/Singapore'
     });
     
     return `${startTime} - ${endTime}`;
