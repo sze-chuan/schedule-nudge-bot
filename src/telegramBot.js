@@ -284,6 +284,23 @@ Subscribed user IDs: ${subscribedList || 'None'}
       grouped[dayName].push(event);
     });
 
+    // Sort events within each day: all-day events first, then timed events by start time
+    Object.keys(grouped).forEach(day => {
+      grouped[day].sort((a, b) => {
+        const aIsAllDay = !!a.start.date;
+        const bIsAllDay = !!b.start.date;
+        
+        // All-day events come first
+        if (aIsAllDay && !bIsAllDay) return -1;
+        if (!aIsAllDay && bIsAllDay) return 1;
+        
+        // If both are all-day or both are timed, sort by start time
+        const aStart = new Date(a.start.dateTime || a.start.date);
+        const bStart = new Date(b.start.dateTime || b.start.date);
+        return aStart - bStart;
+      });
+    });
+
     return grouped;
   }
 
