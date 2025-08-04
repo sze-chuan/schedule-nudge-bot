@@ -1,4 +1,5 @@
 const TelegramBot = require('node-telegram-bot-api');
+const { DateTime } = require('luxon');
 
 class TelegramBotService {
   constructor(token, allowedUserIds, adminUserId = null, interactiveMode = false) {
@@ -275,8 +276,10 @@ Subscribed user IDs: ${subscribedList || 'None'}
     const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     
     events.forEach(event => {
-      const startDate = new Date(event.start.dateTime || event.start.date);
-      const dayName = daysOfWeek[startDate.getDay()];
+      // Parse date in Singapore timezone to get correct day
+      const startDateTime = event.start.dateTime || event.start.date;
+      const luxonDate = DateTime.fromISO(startDateTime).setZone('Asia/Singapore');
+      const dayName = luxonDate.weekdayLong;
       
       if (!grouped[dayName]) {
         grouped[dayName] = [];
@@ -294,10 +297,10 @@ Subscribed user IDs: ${subscribedList || 'None'}
         if (aIsAllDay && !bIsAllDay) return -1;
         if (!aIsAllDay && bIsAllDay) return 1;
         
-        // If both are all-day or both are timed, sort by start time
-        const aStart = new Date(a.start.dateTime || a.start.date);
-        const bStart = new Date(b.start.dateTime || b.start.date);
-        return aStart - bStart;
+        // If both are all-day or both are timed, sort by start time in Singapore timezone
+        const aStart = DateTime.fromISO(a.start.dateTime || a.start.date).setZone('Asia/Singapore');
+        const bStart = DateTime.fromISO(b.start.dateTime || b.start.date).setZone('Asia/Singapore');
+        return aStart.toMillis() - bStart.toMillis();
       });
     });
 
@@ -309,17 +312,14 @@ Subscribed user IDs: ${subscribedList || 'None'}
       return 'All day';
     }
     
-    const startTime = new Date(event.start.dateTime).toLocaleTimeString('en-SG', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    });
+    // Parse and format times in Singapore timezone
+    const startTime = DateTime.fromISO(event.start.dateTime)
+      .setZone('Asia/Singapore')
+      .toFormat('h:mm a');
     
-    const endTime = new Date(event.end.dateTime).toLocaleTimeString('en-SG', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    });
+    const endTime = DateTime.fromISO(event.end.dateTime)
+      .setZone('Asia/Singapore')
+      .toFormat('h:mm a');
     
     return `${startTime} - ${endTime}`;
   }
