@@ -1,4 +1,5 @@
 const { google } = require('googleapis');
+const { DateTime } = require('luxon');
 
 class GoogleCalendarService {
   constructor(config) {
@@ -30,22 +31,21 @@ class GoogleCalendarService {
 
   async getWeeklyEvents() {
     try {
-      const now = new Date();
+      const now = DateTime.now().setZone('Asia/Singapore');
       // Add a day since the github action will be triggered on Sunday 
       // and we want to see the events for the following week
-      now.setDate(now.getDate()); 
       const startOfWeek = this.getStartOfWeek(now);
       const endOfWeek = this.getEndOfWeek(startOfWeek);
 
-      console.log(`Fetching events from ${startOfWeek.toISOString()} to ${endOfWeek.toISOString()}`);
+      console.log(`Fetching events from ${startOfWeek.toISO()} to ${endOfWeek.toISO()}`);
 
       const response = await this.calendar.events.list({
         calendarId: this.calendarId,
-        timeMin: startOfWeek.toISOString(),
-        timeMax: endOfWeek.toISOString(),
+        timeMin: startOfWeek.toISO(),
+        timeMax: endOfWeek.toISO(),
         singleEvents: true,
         orderBy: 'startTime',
-        timeZone: this.timezone
+        timeZone: 'Asia/Singapore'
       });
 
       const events = response.data.items || [];
@@ -53,8 +53,8 @@ class GoogleCalendarService {
       
       return {
         events: events.filter(event => !event.cancelled),
-        startDate: startOfWeek,
-        endDate: endOfWeek
+        startDate: startOfWeek.toJSDate(),
+        endDate: endOfWeek.toJSDate()
       };
     } catch (error) {
       console.error('Error fetching calendar events:', error);
@@ -62,20 +62,14 @@ class GoogleCalendarService {
     }
   }
 
-  getStartOfWeek(date) {
-    const start = new Date(date);
-    const day = start.getDay();
-    const diff = start.getDate() - day + (day === 0 ? 0 : 1); // Monday as start of week
-    start.setDate(diff);
-    start.setHours(0, 0, 0, 0);
-    return start;
+  getStartOfWeek(dateTime) {
+    // Get Monday of the current week in Singapore timezone
+    return dateTime.startOf('week').startOf('day');
   }
 
   getEndOfWeek(startOfWeek) {
-    const end = new Date(startOfWeek);
-    end.setDate(end.getDate() + 6);
-    end.setHours(23, 59, 59, 999);
-    return end;
+    // Get Sunday (end of week) at 23:59:59.999
+    return startOfWeek.plus({ days: 6 }).endOf('day');
   }
 
   async testConnection() {
