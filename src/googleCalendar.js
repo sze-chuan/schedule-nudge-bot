@@ -33,7 +33,7 @@ class GoogleCalendarService {
       const now = new Date();
       // Add a day since the github action will be triggered on Sunday 
       // and we want to see the events for the following week
-      now.setDate(now.getDate() + 1); 
+      now.setDate(now.getDate()); 
       const startOfWeek = this.getStartOfWeek(now);
       const endOfWeek = this.getEndOfWeek(startOfWeek);
 
