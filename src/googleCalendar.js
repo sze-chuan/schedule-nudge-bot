@@ -32,9 +32,9 @@ class GoogleCalendarService {
   async getWeeklyEvents() {
     try {
       const now = DateTime.now().setZone('Asia/Singapore');
-      // Add a day since the github action will be triggered on Sunday 
-      // and we want to see the events for the following week
-      const startOfWeek = this.getStartOfWeek(now);
+      // Get next week's events (add 7 days to get next week)
+      const nextWeek = now.plus({ days: 7 });
+      const startOfWeek = this.getStartOfWeek(nextWeek);
       const endOfWeek = this.getEndOfWeek(startOfWeek);
 
       console.log(`Fetching events from ${startOfWeek.toISO()} to ${endOfWeek.toISO()}`);
