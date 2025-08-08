@@ -2,16 +2,6 @@
 
 This guide explains how to set up Google Calendar access using Service Accounts.
 
-## Why Service Account Only?
-
-**Service Account Benefits:**
-- ✅ No token expiration issues
-- ✅ No manual refresh token generation
-- ✅ Perfect for server-to-server automation
-- ✅ More secure for production use
-- ✅ Simpler, cleaner setup process
-- ✅ Better error handling and diagnostics
-
 ## Step-by-Step Setup
 
 ### 1. Create Google Cloud Project
@@ -50,7 +40,6 @@ This guide explains how to set up Google Calendar access using Service Accounts.
 
 ### 5. Share Calendar with Service Account
 
-**Option A: Share Existing Calendar (Recommended)**
 1. Open [Google Calendar](https://calendar.google.com)
 2. Find your calendar in the left sidebar
 3. Click the three dots → **Settings and sharing**
@@ -58,12 +47,6 @@ This guide explains how to set up Google Calendar access using Service Accounts.
 5. Enter the service account email (from the JSON file)
 6. Set permission to **See all event details**
 7. Click **Send**
-
-**Option B: Use Domain-Wide Delegation (G Suite/Workspace)**
-1. In Google Cloud Console, go to your service account
-2. Check **Enable Google Workspace Domain-wide Delegation**
-3. In Google Admin Console, add the service account
-4. Set calendar scope: `https://www.googleapis.com/auth/calendar.readonly`
 
 ### 6. Configure GitHub Secrets
 
@@ -75,35 +58,13 @@ Add these secrets to your GitHub repository:
 | `CALENDAR_ID` | Calendar ID | Usually "primary" or specific calendar ID |
 | `GOOGLE_CALENDAR_OWNER_EMAIL` | your-email@gmail.com | (Optional) Only for domain delegation |
 
-### 7. Get Calendar ID (if not using "primary")
+### 7. Get Calendar ID 
 
 1. Open [Google Calendar](https://calendar.google.com)
 2. Go to **Settings** → **Settings for my calendars**
 3. Select your calendar
 4. Scroll down to **Calendar ID**
 5. Copy the calendar ID (looks like: `abc123@group.calendar.google.com`)
-
-## Configuration Examples
-
-### Method 1: Shared Calendar (Recommended)
-```env
-GOOGLE_SERVICE_ACCOUNT_KEY={"type":"service_account","project_id":"your-project"...}
-CALENDAR_ID=primary
-# GOOGLE_CALENDAR_OWNER_EMAIL not needed
-```
-
-### Method 2: Domain-Wide Delegation
-```env
-GOOGLE_SERVICE_ACCOUNT_KEY={"type":"service_account","project_id":"your-project"...}
-GOOGLE_CALENDAR_OWNER_EMAIL=calendar-owner@yourdomain.com
-CALENDAR_ID=primary
-```
-
-### Method 3: Specific Calendar
-```env
-GOOGLE_SERVICE_ACCOUNT_KEY={"type":"service_account","project_id":"your-project"...}
-CALENDAR_ID=abc123@group.calendar.google.com
-```
 
 ## Setting GitHub Secrets
 

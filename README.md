@@ -50,7 +50,6 @@ Fork this repository or clone it to your GitHub account.
 
 **Optional:**
    - `ADMIN_USER_ID` (for user management)
-   - `GOOGLE_CALENDAR_OWNER_EMAIL` (for domain-wide delegation)
 
 ### 5. Test the Setup
 
