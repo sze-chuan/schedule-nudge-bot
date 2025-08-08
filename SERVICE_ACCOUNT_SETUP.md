@@ -58,13 +58,17 @@ Add these secrets to your GitHub repository:
 | `CALENDAR_ID` | Calendar ID | Usually "primary" or specific calendar ID |
 | `GOOGLE_CALENDAR_OWNER_EMAIL` | your-email@gmail.com | (Optional) Only for domain delegation |
 
-### 7. Get Calendar ID 
+### 7. Get Calendar IDs
+
+For each calendar you want to use with different groups:
 
 1. Open [Google Calendar](https://calendar.google.com)
 2. Go to **Settings** → **Settings for my calendars**
 3. Select your calendar
 4. Scroll down to **Calendar ID**
 5. Copy the calendar ID (looks like: `abc123@group.calendar.google.com`)
+
+**Note**: With the new group support, you can use multiple calendar IDs. Each Telegram group can be assigned to a different calendar using the bot's `/addcalendar` command.
 
 ## Setting GitHub Secrets
 
@@ -83,8 +87,9 @@ Add these secrets to your GitHub repository:
 
 ### "Calendar not found" Error
 - Make sure the calendar is shared with the service account
-- Verify the `CALENDAR_ID` is correct
-- Check that the service account email has calendar access
+- Verify all calendar IDs in your group configuration are correct
+- Check that the service account email has read access to all calendars you want to use
+- For group-based setup, verify that `GROUP_CALENDAR_MAPPINGS` contains valid calendar IDs
 
 ### "Access denied" Error
 - Ensure Google Calendar API is enabled in your project
