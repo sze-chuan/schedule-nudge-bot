@@ -2,7 +2,7 @@ const TelegramBot = require('node-telegram-bot-api');
 const { DateTime } = require('luxon');
 
 class TelegramBotService {
-  constructor(token, allowedUserIds, adminUserId = null, interactiveMode = false) {
+  constructor(token, adminUserId = null, interactiveMode = false) {
     // Configure bot with request options to handle SSL/network issues
     const botOptions = {
       polling: interactiveMode,
@@ -15,7 +15,6 @@ class TelegramBotService {
     };
     
     this.bot = new TelegramBot(token, botOptions);
-    this.allowedUserIds = this.parseUserIds(allowedUserIds);
     this.adminUserId = adminUserId ? parseInt(adminUserId) : null;
     this.interactiveMode = interactiveMode;
     
@@ -25,14 +24,6 @@ class TelegramBotService {
     }
   }
 
-  parseUserIds(userIdsString) {
-    if (!userIdsString) return [];
-    return userIdsString.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
-  }
-
-  isAuthorizedUser(userId) {
-    return this.allowedUserIds.includes(userId);
-  }
 
   isAdmin(userId) {
     return this.adminUserId && userId === this.adminUserId;
@@ -46,8 +37,8 @@ class TelegramBotService {
 
       console.log(`Message from user ${userId}: ${text}`);
 
-      if (!this.isAuthorizedUser(userId)) {
-        await this.bot.sendMessage(chatId, '❌ You are not authorized to use this bot. Contact the administrator for access.');
+      if (!this.isAdmin(userId)) {
+        await this.bot.sendMessage(chatId, '❌ Only the admin can use this bot.');
         return;
       }
 

@@ -7,7 +7,6 @@ class ScheduleNudgeBot {
     this.interactiveMode = interactiveMode;
     this.telegramBot = new TelegramBotService(
       process.env.TELEGRAM_BOT_TOKEN,
-      process.env.ALLOWED_USER_IDS,
       process.env.ADMIN_USER_ID,
       interactiveMode
     );

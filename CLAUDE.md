@@ -38,12 +38,12 @@ This is a **serverless** Telegram bot that runs via GitHub Actions cron jobs. It
 
 ### Authentication & Access Control
 - **Google Calendar**: Uses Service Account authentication (JWT) with optional domain-wide delegation
-- **Telegram**: Multi-user access control with authorized user lists and admin privileges
+- **Telegram**: Admin-only access control via admin user ID
 - **Admin-Only Updates**: Weekly updates are sent only to the configured admin user
 
 ### Key Features
-- **Multi-user access**: Authorized users can interact with bot for basic commands
-- **Admin commands**: User management (`/add_user`, `/remove_user`, `/users`)
+- **Admin-only access**: Only the configured admin user can interact with the bot
+- **Simple commands**: Basic `/start` and `/help` commands for bot interaction
 - **Admin-only updates**: Weekly calendar updates sent exclusively to admin user
 - **Robust error handling**: Connection testing, graceful failures, automatic error recovery
 - **Formatted messages**: Events grouped by day with time and location details
@@ -52,11 +52,10 @@ This is a **serverless** Telegram bot that runs via GitHub Actions cron jobs. It
 
 The bot requires these environment variables/GitHub Secrets:
 - `TELEGRAM_BOT_TOKEN`: Bot token from @BotFather
-- `ALLOWED_USER_IDS`: Comma-separated authorized user IDs
+- `ADMIN_USER_ID`: Required admin user ID for receiving weekly updates and bot access
 - `GOOGLE_SERVICE_ACCOUNT_KEY`: JSON service account credentials
 - `CALENDAR_ID`: Google Calendar ID (usually "primary")
 - `TIMEZONE`: Timezone for event display
-- `ADMIN_USER_ID`: Required admin user ID for receiving weekly updates and user management
 - `GOOGLE_CALENDAR_OWNER_EMAIL`: Optional for domain-wide delegation
 
 ## Message Flow
