@@ -14,7 +14,6 @@ class ScheduleNudgeBot {
     this.googleCalendar = new GoogleCalendarService({
       serviceAccountKey: process.env.GOOGLE_SERVICE_ACCOUNT_KEY,
       calendarOwnerEmail: process.env.GOOGLE_CALENDAR_OWNER_EMAIL,
-      calendarId: process.env.CALENDAR_ID,
       timezone: process.env.TIMEZONE
     });
   }
@@ -64,10 +63,7 @@ class ScheduleNudgeBot {
       const configuredGroups = groupManager.getAllGroups();
       
       if (configuredGroups.length === 0) {
-        console.log('No groups configured - falling back to admin-only mode');
-        const weeklyData = await this.googleCalendar.getWeeklyEvents();
-        const result = await this.telegramBot.sendWeeklyUpdateToSubscribers(weeklyData.events, weeklyData.startDate, weeklyData.endDate);
-        console.log(`Weekly update completed (admin-only): ${result.successCount} sent, ${result.errorCount} failed`);
+        console.log('No groups configured - nothing to send. Use /addcalendar command in groups to configure calendars.');
         return;
       }
 

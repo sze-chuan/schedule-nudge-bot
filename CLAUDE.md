@@ -64,8 +64,7 @@ The bot requires these environment variables/GitHub Secrets:
 - `GROUP_CALENDAR_MAPPINGS`: Base64-encoded JSON containing group-calendar mappings
 - `TIMEZONE`: Timezone for event display (e.g., "Asia/Singapore")
 
-### Legacy Configuration (Optional)
-- `CALENDAR_ID`: Fallback Google Calendar ID (usually "primary") - used when no groups configured
+### Optional Configuration
 - `GOOGLE_CALENDAR_OWNER_EMAIL`: Optional for domain-wide delegation
 
 ### Group Configuration Format
@@ -93,10 +92,10 @@ The `GROUP_CALENDAR_MAPPINGS` should contain Base64-encoded JSON in this format:
 6. Handles delivery failures with proper error logging and recovery
 7. Exits after completing all deliveries
 
-### Legacy Mode (Fallback)
-If no groups are configured, falls back to admin-only mode:
-1. Fetches events from fallback `CALENDAR_ID`
-2. Sends update to admin user only
+### No Groups Mode
+If no groups are configured:
+1. Bot logs a message indicating no groups are configured
+2. Exits without sending any messages (use `/addcalendar` to configure groups)
 
 ## Bot Commands (Admin Only)
 

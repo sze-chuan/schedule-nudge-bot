@@ -25,14 +25,9 @@ class GoogleCalendarService {
     }
     
     this.calendar = google.calendar({ version: 'v3', auth: this.auth });
-    this.calendarId = config.calendarId || 'primary';
     this.timezone = config.timezone || 'America/New_York';
   }
 
-  async getWeeklyEvents() {
-    // Use default calendar for backward compatibility
-    return this.getWeeklyEventsForCalendar(this.calendarId);
-  }
 
   async getWeeklyEventsForCalendar(calendarId) {
     try {
@@ -105,20 +100,20 @@ class GoogleCalendarService {
 
   async testConnection() {
     try {
-      // For service accounts, test by getting calendar info
-      const response = await this.calendar.calendars.get({
-        calendarId: this.calendarId
+      // Test with a simple calendar list request to verify API access
+      const response = await this.calendar.calendarList.list({
+        maxResults: 1
       });
-      console.log(`Google Calendar connection successful - Connected to: ${response.data.summary}`);
+      console.log(`Google Calendar connection successful - Service account has access to ${response.data.items?.length || 0} calendars`);
       return true;
     } catch (error) {
       console.error('Google Calendar connection failed:', error.message);
       
       // Provide helpful error messages
       if (error.code === 404) {
-        console.error('Calendar not found. Make sure the calendar is shared with the service account or calendar ID is correct.');
+        console.error('Calendar API not found. Make sure the Calendar API is enabled in your Google Cloud project.');
       } else if (error.code === 403) {
-        console.error('Access denied. Make sure the service account has calendar access.');
+        console.error('Access denied. Make sure the service account credentials are correct.');
       }
       
       return false;

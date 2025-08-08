@@ -40,7 +40,6 @@ jobs:
         GROUP_CALENDAR_MAPPINGS: ${{ secrets.GROUP_CALENDAR_MAPPINGS }}
         
         # Global Settings
-        CALENDAR_ID: ${{ secrets.CALENDAR_ID }}
         TIMEZONE: ${{ secrets.TIMEZONE }}
       run: |
         echo "🤖 Starting Schedule Nudge Bot weekly update..."
