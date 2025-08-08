@@ -15,8 +15,7 @@ class GroupManager {
             this.groups.set(group.groupId.toString(), {
               groupId: group.groupId,
               calendarId: group.calendarId,
-              groupName: group.groupName || 'Unknown Group',
-              addedAt: group.addedAt || new Date().toISOString()
+              groupName: group.groupName || 'Unknown Group'
             });
           });
           console.log(`Loaded ${this.groups.size} group-calendar mappings`);
@@ -53,8 +52,7 @@ class GroupManager {
     const groupData = {
       groupId: parseInt(groupId),
       calendarId,
-      groupName,
-      addedAt: new Date().toISOString()
+      groupName
     };
     
     this.groups.set(groupIdStr, groupData);
@@ -82,8 +80,7 @@ class GroupManager {
 
   generateBase64Config() {
     const config = {
-      groups: Array.from(this.groups.values()),
-      lastUpdated: new Date().toISOString()
+      groups: Array.from(this.groups.values())
     };
     
     const jsonString = JSON.stringify(config, null, 2);

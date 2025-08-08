@@ -235,8 +235,7 @@ ${config.base64}
     groups.forEach((group, index) => {
       message += `*${index + 1}.* ${group.groupName}\n`;
       message += `   📍 Group ID: \`${group.groupId}\`\n`;
-      message += `   📅 Calendar: \`${group.calendarId}\`\n`;
-      message += `   📝 Added: ${new Date(group.addedAt).toLocaleDateString()}\n\n`;
+      message += `   📅 Calendar: \`${group.calendarId}\`\n\n`;
     });
     
     await this.bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
@@ -263,7 +262,6 @@ ${config.base64}
 *Group Name:* ${chat.title || 'Unknown'}
 *Group ID:* \`${chatId}\`
 *Calendar ID:* \`${groupInfo.calendarId}\`
-*Added:* ${new Date(groupInfo.addedAt).toLocaleDateString()}
 
 This group will receive weekly calendar updates every Sunday at 6 PM UTC.`;
       
@@ -280,6 +278,7 @@ This group will receive weekly calendar updates every Sunday at 6 PM UTC.`;
   }
 
   async sendWeeklyUpdateToSubscribers(events, startDate = null, endDate = null) {
+    // Backward compatibility: send to admin only (legacy behavior)
     const message = this.formatWeeklyMessage(events, startDate, endDate);
     let successCount = 0;
     let errorCount = 0;
@@ -305,6 +304,166 @@ This group will receive weekly calendar updates every Sunday at 6 PM UTC.`;
     return { successCount, errorCount };
   }
 
+  async sendWeeklyUpdateToAllGroups(calendarResults) {
+    const groups = this.groupManager.getAllGroups();
+    let totalSuccessCount = 0;
+    let totalErrorCount = 0;
+    const deliveryDetails = [];
+
+    if (groups.length === 0) {
+      console.log('No groups configured - skipping group deliveries');
+      return {
+        successCount: 0,
+        errorCount: 0,
+        groupDeliveries: [],
+        adminDeliveries: { sent: false, error: 'No groups configured' }
+      };
+    }
+
+    console.log(`Sending weekly updates to ${groups.length} configured groups`);
+
+    // Send to each group with their specific calendar events
+    for (const group of groups) {
+      const groupResult = await this.sendWeeklyUpdateToGroup(group, calendarResults);
+      deliveryDetails.push(groupResult);
+      
+      if (groupResult.success) {
+        totalSuccessCount++;
+      } else {
+        totalErrorCount++;
+      }
+    }
+
+    // Send admin debugging summary
+    const adminResult = await this.sendAdminDebuggingSummary(deliveryDetails, calendarResults);
+
+    console.log(`Multi-group delivery completed: ${totalSuccessCount} groups succeeded, ${totalErrorCount} groups failed`);
+
+    return {
+      successCount: totalSuccessCount,
+      errorCount: totalErrorCount,
+      groupDeliveries: deliveryDetails,
+      adminDeliveries: adminResult
+    };
+  }
+
+  async sendWeeklyUpdateToGroup(group, calendarResults) {
+    try {
+      // Find calendar data for this group
+      const calendarData = calendarResults.results.find(result => result.calendarId === group.calendarId);
+      
+      if (!calendarData) {
+        const errorMsg = `No calendar data found for ${group.calendarId}`;
+        console.error(`Group ${group.groupName} (${group.groupId}): ${errorMsg}`);
+        return {
+          groupId: group.groupId,
+          groupName: group.groupName,
+          calendarId: group.calendarId,
+          success: false,
+          error: errorMsg,
+          eventCount: 0
+        };
+      }
+
+      const message = this.formatWeeklyMessage(calendarData.events, calendarData.startDate, calendarData.endDate, group.groupName);
+      
+      console.log(`Sending update to group "${group.groupName}" (${group.groupId}) with ${calendarData.events.length} events`);
+
+      await this.bot.sendMessage(group.groupId, message, { parse_mode: 'Markdown' });
+
+      console.log(`✅ Successfully sent to group "${group.groupName}"`);
+
+      return {
+        groupId: group.groupId,
+        groupName: group.groupName,
+        calendarId: group.calendarId,
+        success: true,
+        eventCount: calendarData.events.length,
+        sentAt: new Date().toISOString()
+      };
+
+    } catch (error) {
+      console.error(`❌ Failed to send to group "${group.groupName}" (${group.groupId}):`, error.message);
+      
+      return {
+        groupId: group.groupId,
+        groupName: group.groupName,
+        calendarId: group.calendarId,
+        success: false,
+        error: error.message,
+        eventCount: 0
+      };
+    }
+  }
+
+  async sendAdminDebuggingSummary(deliveryDetails, calendarResults) {
+    if (!this.adminUserId) {
+      console.log('No admin user configured - skipping admin debugging summary');
+      return { sent: false, error: 'No admin user configured' };
+    }
+
+    try {
+      let debugMessage = `🔧 *Admin Debug: Weekly Update Summary*\n\n`;
+      
+      // Calendar fetch summary
+      debugMessage += `📅 *Calendar Fetch Results:*\n`;
+      debugMessage += `• ${calendarResults.successCount} calendars fetched successfully\n`;
+      debugMessage += `• ${calendarResults.errorCount} calendars failed\n\n`;
+
+      if (calendarResults.errors.length > 0) {
+        debugMessage += `❌ *Calendar Errors:*\n`;
+        calendarResults.errors.forEach(error => {
+          debugMessage += `• ${error.calendarId}: ${error.error}\n`;
+        });
+        debugMessage += `\n`;
+      }
+
+      // Group delivery summary
+      debugMessage += `📤 *Group Delivery Results:*\n`;
+      const successfulDeliveries = deliveryDetails.filter(d => d.success);
+      const failedDeliveries = deliveryDetails.filter(d => !d.success);
+
+      debugMessage += `• ${successfulDeliveries.length} groups received updates\n`;
+      debugMessage += `• ${failedDeliveries.length} groups failed\n\n`;
+
+      if (successfulDeliveries.length > 0) {
+        debugMessage += `✅ *Successful Deliveries:*\n`;
+        successfulDeliveries.forEach(delivery => {
+          debugMessage += `• ${delivery.groupName}: ${delivery.eventCount} events (${delivery.calendarId})\n`;
+        });
+        debugMessage += `\n`;
+      }
+
+      if (failedDeliveries.length > 0) {
+        debugMessage += `❌ *Failed Deliveries:*\n`;
+        failedDeliveries.forEach(delivery => {
+          debugMessage += `• ${delivery.groupName}: ${delivery.error}\n`;
+        });
+        debugMessage += `\n`;
+      }
+
+      debugMessage += `⏰ *Summary completed at:* ${new Date().toLocaleString('en-SG', { timeZone: 'Asia/Singapore' })}`;
+
+      await this.bot.sendMessage(this.adminUserId, debugMessage, { parse_mode: 'Markdown' });
+
+      console.log(`📧 Admin debugging summary sent to ${this.adminUserId}`);
+
+      return { 
+        sent: true, 
+        adminUserId: this.adminUserId,
+        sentAt: new Date().toISOString() 
+      };
+
+    } catch (error) {
+      console.error(`Failed to send admin debugging summary:`, error.message);
+      return { 
+        sent: false, 
+        error: error.message,
+        adminUserId: this.adminUserId 
+      };
+    }
+  }
+
   async testTelegramConnection() {
     try {
       const me = await this.bot.getMe();
@@ -316,14 +475,15 @@ This group will receive weekly calendar updates every Sunday at 6 PM UTC.`;
     }
   }
 
-  formatWeeklyMessage(events, startDate, endDate) {
+  formatWeeklyMessage(events, startDate, endDate, groupName = null) {
     const weekDateRange = this.formatWeekDateRange(startDate, endDate);
+    const title = groupName ? `📅 *Weekly Schedule Update - ${groupName}*` : `📅 *Weekly Schedule Update*`;
 
     if (events.length === 0) {
-      return `📅 *Weekly Schedule Update*\n${weekDateRange}\n\nYou have no events scheduled for the upcoming week. Enjoy your free time! 🎉`;
+      return `${title}\n${weekDateRange}\n\nYou have no events scheduled for the upcoming week. Enjoy your free time! 🎉`;
     }
 
-    let message = `📅 *Weekly Schedule Update*\n${weekDateRange}\n\nHere's what you have coming up this week:\n\n`;
+    let message = `${title}\n${weekDateRange}\n\nHere's what you have coming up this week:\n\n`;
     
     const eventsByDay = this.groupEventsByDay(events);
     

@@ -30,6 +30,11 @@ class GoogleCalendarService {
   }
 
   async getWeeklyEvents() {
+    // Use default calendar for backward compatibility
+    return this.getWeeklyEventsForCalendar(this.calendarId);
+  }
+
+  async getWeeklyEventsForCalendar(calendarId) {
     try {
       const now = DateTime.now().setZone('Asia/Singapore');
       // Get next week's events (add 7 days to get next week)
@@ -37,10 +42,10 @@ class GoogleCalendarService {
       const startOfWeek = this.getStartOfWeek(nextWeek);
       const endOfWeek = this.getEndOfWeek(startOfWeek);
 
-      console.log(`Fetching events from ${startOfWeek.toISO()} to ${endOfWeek.toISO()}`);
+      console.log(`Fetching events from ${startOfWeek.toISO()} to ${endOfWeek.toISO()} for calendar: ${calendarId}`);
 
       const response = await this.calendar.events.list({
-        calendarId: this.calendarId,
+        calendarId: calendarId,
         timeMin: startOfWeek.toISO(),
         timeMax: endOfWeek.toISO(),
         singleEvents: true,
@@ -49,17 +54,43 @@ class GoogleCalendarService {
       });
 
       const events = response.data.items || [];
-      console.log(`Found ${events.length} events for the week`);
+      console.log(`Found ${events.length} events for calendar ${calendarId}`);
       
       return {
         events: events.filter(event => !event.cancelled),
         startDate: startOfWeek.toJSDate(),
-        endDate: endOfWeek.toJSDate()
+        endDate: endOfWeek.toJSDate(),
+        calendarId: calendarId
       };
     } catch (error) {
-      console.error('Error fetching calendar events:', error);
+      console.error(`Error fetching calendar events for ${calendarId}:`, error);
       throw error;
     }
+  }
+
+  async getWeeklyEventsForMultipleCalendars(calendarIds) {
+    const results = [];
+    const errors = [];
+
+    for (const calendarId of calendarIds) {
+      try {
+        const weeklyData = await this.getWeeklyEventsForCalendar(calendarId);
+        results.push(weeklyData);
+      } catch (error) {
+        console.error(`Failed to fetch events for calendar ${calendarId}:`, error.message);
+        errors.push({
+          calendarId,
+          error: error.message
+        });
+      }
+    }
+
+    return {
+      results,
+      errors,
+      successCount: results.length,
+      errorCount: errors.length
+    };
   }
 
   getStartOfWeek(dateTime) {

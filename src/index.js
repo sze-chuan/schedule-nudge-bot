@@ -60,23 +60,64 @@ class ScheduleNudgeBot {
 
   async sendWeeklyUpdate() {
     try {
-      console.log('Fetching weekly events...');
-      const weeklyData = await this.googleCalendar.getWeeklyEvents();
+      const groupManager = this.telegramBot.getGroupManager();
+      const configuredGroups = groupManager.getAllGroups();
       
-      console.log('Sending weekly update via Telegram...');
-      const result = await this.telegramBot.sendWeeklyUpdateToSubscribers(weeklyData.events, weeklyData.startDate, weeklyData.endDate);
+      if (configuredGroups.length === 0) {
+        console.log('No groups configured - falling back to admin-only mode');
+        const weeklyData = await this.googleCalendar.getWeeklyEvents();
+        const result = await this.telegramBot.sendWeeklyUpdateToSubscribers(weeklyData.events, weeklyData.startDate, weeklyData.endDate);
+        console.log(`Weekly update completed (admin-only): ${result.successCount} sent, ${result.errorCount} failed`);
+        return;
+      }
+
+      console.log(`Found ${configuredGroups.length} configured groups`);
       
-      console.log(`Weekly update completed: ${result.successCount} sent, ${result.errorCount} failed`);
+      // Get unique calendar IDs from all groups
+      const uniqueCalendarIds = [...new Set(configuredGroups.map(group => group.calendarId))];
+      console.log(`Fetching events from ${uniqueCalendarIds.length} unique calendars: ${uniqueCalendarIds.join(', ')}`);
+      
+      // Fetch events from all required calendars
+      const calendarResults = await this.googleCalendar.getWeeklyEventsForMultipleCalendars(uniqueCalendarIds);
+      
+      if (calendarResults.successCount === 0) {
+        throw new Error(`Failed to fetch events from any calendar. Errors: ${calendarResults.errors.map(e => e.error).join(', ')}`);
+      }
+      
+      console.log(`Calendar fetch completed: ${calendarResults.successCount} successful, ${calendarResults.errorCount} failed`);
+      
+      // Send updates to all groups with their specific calendar events
+      const result = await this.telegramBot.sendWeeklyUpdateToAllGroups(calendarResults);
+      
+      console.log(`Multi-group weekly update completed:`);
+      console.log(`• Groups: ${result.successCount} sent, ${result.errorCount} failed`);
+      console.log(`• Admin debug: ${result.adminDeliveries.sent ? 'sent' : 'failed'}`);
+      
+      if (result.errorCount > 0) {
+        console.warn(`Some group deliveries failed. Check admin debug message for details.`);
+      }
+      
     } catch (error) {
       console.error('Error sending weekly update:', error);
       
-      // For GitHub Actions, we don't need to send error notifications
-      // The logs will show the error details
+      // Try to notify admin of the error
+      try {
+        if (this.telegramBot.adminUserId) {
+          const errorMessage = `🚨 *Weekly Update Failed*\n\nError: ${error.message}\n\nTime: ${new Date().toLocaleString('en-SG', { timeZone: 'Asia/Singapore' })}`;
+          await this.telegramBot.bot.sendMessage(this.telegramBot.adminUserId, errorMessage, { parse_mode: 'Markdown' });
+        }
+      } catch (notificationError) {
+        console.error('Failed to send error notification to admin:', notificationError.message);
+      }
+      
       throw error;
     }
   }
 
 }
+
+// Export the class for testing
+module.exports = ScheduleNudgeBot;
 
 // Handle graceful shutdown
 process.on('SIGINT', () => {
