@@ -13,7 +13,6 @@ class ScheduleNudgeBot {
     
     this.googleCalendar = new GoogleCalendarService({
       serviceAccountKey: process.env.GOOGLE_SERVICE_ACCOUNT_KEY,
-      calendarOwnerEmail: process.env.GOOGLE_CALENDAR_OWNER_EMAIL,
       timezone: process.env.TIMEZONE
     });
   }

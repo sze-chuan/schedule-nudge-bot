@@ -14,16 +14,6 @@ class GoogleCalendarService {
       scopes: ['https://www.googleapis.com/auth/calendar.readonly']
     });
     
-    // If calendar owner email is provided, use domain-wide delegation
-    if (config.calendarOwnerEmail) {
-      this.auth = new google.auth.JWT({
-        email: serviceAccount.client_email,
-        key: serviceAccount.private_key,
-        scopes: ['https://www.googleapis.com/auth/calendar.readonly'],
-        subject: config.calendarOwnerEmail
-      });
-    }
-    
     this.calendar = google.calendar({ version: 'v3', auth: this.auth });
     this.timezone = config.timezone || 'America/New_York';
   }
