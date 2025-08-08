@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## General guideline
+
+- Share an overview of the plan before making any code modifications
+
 ## Development Commands
 
 ```bash
@@ -35,12 +39,13 @@ This is a **serverless** Telegram bot that runs via GitHub Actions cron jobs. It
 ### Authentication & Access Control
 - **Google Calendar**: Uses Service Account authentication (JWT) with optional domain-wide delegation
 - **Telegram**: Multi-user access control with authorized user lists and admin privileges
-- **Subscription System**: Users must explicitly subscribe to receive weekly updates
+- **Admin-Only Updates**: Weekly updates are sent only to the configured admin user
 
 ### Key Features
-- **Multi-user support**: Authorized users with subscription management
+- **Multi-user access**: Authorized users can interact with bot for basic commands
 - **Admin commands**: User management (`/add_user`, `/remove_user`, `/users`)
-- **Robust error handling**: Connection testing, graceful failures, automatic user cleanup
+- **Admin-only updates**: Weekly calendar updates sent exclusively to admin user
+- **Robust error handling**: Connection testing, graceful failures, automatic error recovery
 - **Formatted messages**: Events grouped by day with time and location details
 
 ## Configuration Requirements
@@ -51,15 +56,15 @@ The bot requires these environment variables/GitHub Secrets:
 - `GOOGLE_SERVICE_ACCOUNT_KEY`: JSON service account credentials
 - `CALENDAR_ID`: Google Calendar ID (usually "primary")
 - `TIMEZONE`: Timezone for event display
-- `ADMIN_USER_ID`: Optional admin user for user management
+- `ADMIN_USER_ID`: Required admin user ID for receiving weekly updates and user management
 - `GOOGLE_CALENDAR_OWNER_EMAIL`: Optional for domain-wide delegation
 
 ## Message Flow
 1. Bot tests Google Calendar and Telegram connections
 2. Fetches weekly events (Monday-Sunday) from Google Calendar
 3. Formats events into markdown messages grouped by day
-4. Sends updates to all subscribed users
-5. Handles delivery failures and removes blocked users automatically
+4. Sends update to the configured admin user only
+5. Handles delivery failures with proper error logging
 6. Exits after completing the update cycle
 
 ## Testing
