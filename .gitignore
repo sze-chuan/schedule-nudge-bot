@@ -20,3 +20,8 @@ build/
 *~
 credentials.json
 token.json
+
+# Local testing files
+test-*.json
+sample-*.json
+local-test.*
