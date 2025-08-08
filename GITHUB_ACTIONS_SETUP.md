@@ -25,11 +25,6 @@ You need to add the following secrets to your GitHub repository:
 |-------------|-------------|---------|
 | `GOOGLE_SERVICE_ACCOUNT_KEY` | JSON key file contents | `{"type":"service_account",...}` |
 
-### Optional Secrets
-
-| Secret Name | Description | Example |
-|-------------|-------------|---------|
-| `GOOGLE_CALENDAR_OWNER_EMAIL` | For domain-wide delegation | `admin@company.com` |
 
 ## How to Get Your Admin User ID
 

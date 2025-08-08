@@ -55,7 +55,6 @@ Add these secrets to your GitHub repository:
 | Secret Name | Value | Description |
 |-------------|-------|-------------|
 | `GOOGLE_SERVICE_ACCOUNT_KEY` | Contents of the JSON file | The entire JSON key file as a string |
-| `GOOGLE_CALENDAR_OWNER_EMAIL` | your-email@gmail.com | (Optional) Only for domain delegation |
 
 ### 7. Get Calendar IDs
 

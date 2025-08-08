@@ -64,8 +64,6 @@ The bot requires these environment variables/GitHub Secrets:
 - `GROUP_CALENDAR_MAPPINGS`: Base64-encoded JSON containing group-calendar mappings
 - `TIMEZONE`: Timezone for event display (e.g., "Asia/Singapore")
 
-### Optional Configuration
-- `GOOGLE_CALENDAR_OWNER_EMAIL`: Optional for domain-wide delegation
 
 ### Group Configuration Format
 The `GROUP_CALENDAR_MAPPINGS` should contain Base64-encoded JSON in this format:

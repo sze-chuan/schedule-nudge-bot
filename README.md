@@ -50,8 +50,6 @@ Fork this repository or clone it to your GitHub account.
    - `GROUP_CALENDAR_MAPPINGS` - Base64-encoded group-calendar configuration (see below)
    - `TIMEZONE` - Your timezone (e.g., "Asia/Singapore")
 
-**Optional:**
-   - `GOOGLE_CALENDAR_OWNER_EMAIL` - For domain-wide delegation
 
 ### 5. Configure Groups (Two Options)
 

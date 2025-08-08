@@ -34,7 +34,6 @@ jobs:
         
         # Google Calendar - Service Account Authentication
         GOOGLE_SERVICE_ACCOUNT_KEY: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_KEY }}
-        GOOGLE_CALENDAR_OWNER_EMAIL: ${{ secrets.GOOGLE_CALENDAR_OWNER_EMAIL }}
         
         # Multi-Group Configuration (Base64 encoded JSON)
         GROUP_CALENDAR_MAPPINGS: ${{ secrets.GROUP_CALENDAR_MAPPINGS }}
