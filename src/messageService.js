@@ -1,4 +1,5 @@
 const { DateTime } = require('luxon');
+const { sanitizeId, sanitizeCalendarId } = require('./utils/logger');
 
 class MessageService {
   constructor(bot, adminUserId, groupManager) {
@@ -18,15 +19,15 @@ class MessageService {
       return { successCount: 0, errorCount: 1 };
     }
 
-    console.log(`Sending weekly update to admin user ${this.adminUserId}`);
+    console.log(`Sending weekly update to admin user ${sanitizeId(this.adminUserId)}`);
 
     try {
       await this.bot.sendMessage(this.adminUserId, message, { parse_mode: 'Markdown' });
       successCount++;
-      console.log(`Weekly update sent to admin user ${this.adminUserId}`);
+      console.log(`Weekly update sent to admin user ${sanitizeId(this.adminUserId)}`);
     } catch (error) {
       errorCount++;
-      console.error(`Error sending to admin user ${this.adminUserId}:`, error.message);
+      console.error(`Error sending to admin user ${sanitizeId(this.adminUserId)}:`, error.message);
       console.error('Full error details:', error);
     }
 
@@ -83,8 +84,8 @@ class MessageService {
       const calendarData = calendarResults.results.find(result => result.calendarId === group.calendarId);
       
       if (!calendarData) {
-        const errorMsg = `No calendar data found for ${group.calendarId}`;
-        console.error(`Group ${group.groupName} (${group.groupId}): ${errorMsg}`);
+        const errorMsg = `No calendar data found for ${sanitizeCalendarId(group.calendarId)}`;
+        console.error(`Group ${group.groupName} (${sanitizeId(group.groupId)}): ${errorMsg}`);
         return {
           groupId: group.groupId,
           groupName: group.groupName,
@@ -97,7 +98,7 @@ class MessageService {
 
       const message = this.formatWeeklyMessage(calendarData.events, calendarData.startDate, calendarData.endDate, group.groupName);
       
-      console.log(`Sending update to group "${group.groupName}" (${group.groupId}) with ${calendarData.events.length} events`);
+      console.log(`Sending update to group "${group.groupName}" (${sanitizeId(group.groupId)}) with ${calendarData.events.length} events`);
 
       await this.bot.sendMessage(group.groupId, message, { parse_mode: 'Markdown' });
 
@@ -113,7 +114,7 @@ class MessageService {
       };
 
     } catch (error) {
-      console.error(`❌ Failed to send to group "${group.groupName}" (${group.groupId}):`, error.message);
+      console.error(`❌ Failed to send to group "${group.groupName}" (${sanitizeId(group.groupId)}):`, error.message);
       
       return {
         groupId: group.groupId,
@@ -143,7 +144,7 @@ class MessageService {
       if (calendarResults.errors.length > 0) {
         debugMessage += `❌ *Calendar Errors:*\n`;
         calendarResults.errors.forEach(error => {
-          debugMessage += `• ${error.calendarId}: ${error.error}\n`;
+          debugMessage += `• ${sanitizeCalendarId(error.calendarId)}: ${error.error}\n`;
         });
         debugMessage += `\n`;
       }
@@ -159,7 +160,7 @@ class MessageService {
       if (successfulDeliveries.length > 0) {
         debugMessage += `✅ *Successful Deliveries:*\n`;
         successfulDeliveries.forEach(delivery => {
-          debugMessage += `• ${delivery.groupName}: ${delivery.eventCount} events (${delivery.calendarId})\n`;
+          debugMessage += `• ${delivery.groupName}: ${delivery.eventCount} events (${sanitizeCalendarId(delivery.calendarId)})\n`;
         });
         debugMessage += `\n`;
       }
@@ -176,7 +177,7 @@ class MessageService {
 
       await this.bot.sendMessage(this.adminUserId, debugMessage, { parse_mode: 'Markdown' });
 
-      console.log(`📧 Admin debugging summary sent to ${this.adminUserId}`);
+      console.log(`📧 Admin debugging summary sent to ${sanitizeId(this.adminUserId)}`);
 
       return { 
         sent: true, 

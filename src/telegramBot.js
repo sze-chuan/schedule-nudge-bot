@@ -2,6 +2,7 @@ const TelegramBot = require('node-telegram-bot-api');
 const { DateTime } = require('luxon');
 const GroupManager = require('./groupManager');
 const MessageService = require('./messageService');
+const { sanitizeId, sanitizeCalendarId } = require('./utils/logger');
 
 class TelegramBotService {
   constructor(token, adminUserId = null, interactiveMode = false) {
@@ -45,11 +46,11 @@ class TelegramBotService {
 
       // Skip non-text messages
       if (!text) {
-        console.log(`Non-text message from user ${userId} (type: ${msg.type || 'unknown'})`);
+        console.log(`Non-text message from user ${sanitizeId(userId)} (type: ${msg.type || 'unknown'})`);
         return;
       }
 
-      console.log(`Message from user ${userId}: ${text}`);
+      console.log(`Message from user ${sanitizeId(userId)}: ${text}`);
 
       if (!this.isAdmin(userId)) {
         await this.bot.sendMessage(chatId, '❌ Only the admin can use this bot.');
@@ -85,7 +86,7 @@ class TelegramBotService {
     if (isGroupChat) {
       const groupInfo = this.groupManager.getGroupInfo(chatId);
       groupStatus = groupInfo 
-        ? `\n📅 Calendar: \`${groupInfo.calendarId}\``
+        ? `\n📅 Calendar: \`${sanitizeCalendarId(groupInfo.calendarId)}\``
         : '\n❌ No calendar assigned to this group';
     }
     
@@ -94,9 +95,9 @@ class TelegramBotService {
 
 Welcome! This bot sends weekly calendar updates to configured groups every Sunday evening.
 
-Your User ID: \`${userId}\`
+Your User ID: \`${sanitizeId(userId)}\`
 ${isAdmin ? 'Admin Status: ✅' : 'Admin Status: ❌'}
-${isGroupChat ? `Group ID: \`${chatId}\`${groupStatus}` : ''}
+${isGroupChat ? `Group ID: \`${sanitizeId(chatId)}\`${groupStatus}` : ''}
 
 📊 *Status:* ${totalGroups} configured groups
 
@@ -165,8 +166,8 @@ Need help? Contact your bot administrator.
       const successMessage = `✅ *Calendar assigned successfully!*
       
 *Group:* ${groupName}
-*Group ID:* \`${chatId}\`
-*Calendar ID:* \`${calendarId}\`
+*Group ID:* \`${sanitizeId(chatId)}\`
+*Calendar ID:* \`${sanitizeCalendarId(calendarId)}\`
 
 📋 *Update GitHub Secrets:*
 Copy this Base64 string and update the \`GROUP_CALENDAR_MAPPINGS\` environment variable in your GitHub repository secrets:
@@ -181,7 +182,7 @@ ${config.base64}
       
       // Also send to admin for debugging
       if (this.adminUserId && chatId !== this.adminUserId) {
-        await this.bot.sendMessage(this.adminUserId, `🔧 *Admin Debug:* Calendar assigned to group "${groupName}" (${chatId})`, { parse_mode: 'Markdown' });
+        await this.bot.sendMessage(this.adminUserId, `🔧 *Admin Debug:* Calendar assigned to group "${groupName}" (${sanitizeId(chatId)})`, { parse_mode: 'Markdown' });
       }
       
     } catch (error) {
@@ -220,7 +221,7 @@ ${config.base64}
     
     // Also send to admin for debugging
     if (this.adminUserId && chatId !== this.adminUserId) {
-      await this.bot.sendMessage(this.adminUserId, `🔧 *Admin Debug:* Calendar removed from group (${chatId})`, { parse_mode: 'Markdown' });
+      await this.bot.sendMessage(this.adminUserId, `🔧 *Admin Debug:* Calendar removed from group (${sanitizeId(chatId)})`, { parse_mode: 'Markdown' });
     }
   }
 
@@ -236,8 +237,8 @@ ${config.base64}
     
     groups.forEach((group, index) => {
       message += `*${index + 1}.* ${group.groupName}\n`;
-      message += `   📍 Group ID: \`${group.groupId}\`\n`;
-      message += `   📅 Calendar: \`${group.calendarId}\`\n\n`;
+      message += `   📍 Group ID: \`${sanitizeId(group.groupId)}\`\n`;
+      message += `   📅 Calendar: \`${sanitizeCalendarId(group.calendarId)}\`\n\n`;
     });
     
     await this.bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
@@ -262,8 +263,8 @@ ${config.base64}
       const message = `ℹ️ *Group Information*
 
 *Group Name:* ${chat.title || 'Unknown'}
-*Group ID:* \`${chatId}\`
-*Calendar ID:* \`${groupInfo.calendarId}\`
+*Group ID:* \`${sanitizeId(chatId)}\`
+*Calendar ID:* \`${sanitizeCalendarId(groupInfo.calendarId)}\`
 
 This group will receive weekly calendar updates every Sunday at 6 PM UTC.`;
       

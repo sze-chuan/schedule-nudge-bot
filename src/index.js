@@ -1,6 +1,7 @@
 require('dotenv').config();
 const TelegramBotService = require('./telegramBot');
 const GoogleCalendarService = require('./googleCalendar');
+const { sanitizeId, sanitizeCalendarId } = require('./utils/logger');
 
 class ScheduleNudgeBot {
   constructor(interactiveMode = false) {
@@ -70,7 +71,7 @@ class ScheduleNudgeBot {
       
       // Get unique calendar IDs from all groups
       const uniqueCalendarIds = [...new Set(configuredGroups.map(group => group.calendarId))];
-      console.log(`Fetching events from ${uniqueCalendarIds.length} unique calendars: ${uniqueCalendarIds.join(', ')}`);
+      console.log(`Fetching events from ${uniqueCalendarIds.length} unique calendars: ${uniqueCalendarIds.map(id => sanitizeCalendarId(id)).join(', ')}`);
       
       // Fetch events from all required calendars
       const calendarResults = await this.googleCalendar.getWeeklyEventsForMultipleCalendars(uniqueCalendarIds);

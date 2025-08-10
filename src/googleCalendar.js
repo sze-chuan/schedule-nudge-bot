@@ -1,5 +1,6 @@
 const { google } = require('googleapis');
 const { DateTime } = require('luxon');
+const { sanitizeId, sanitizeCalendarId } = require('./utils/logger');
 
 class GoogleCalendarService {
   constructor(config) {
@@ -27,7 +28,7 @@ class GoogleCalendarService {
       const startOfWeek = this.getStartOfWeek(nextWeek);
       const endOfWeek = this.getEndOfWeek(startOfWeek);
 
-      console.log(`Fetching events from ${startOfWeek.toISO()} to ${endOfWeek.toISO()} for calendar: ${calendarId}`);
+      console.log(`Fetching events from ${startOfWeek.toISO()} to ${endOfWeek.toISO()} for calendar: ${sanitizeCalendarId(calendarId)}`);
 
       const response = await this.calendar.events.list({
         calendarId: calendarId,
@@ -39,7 +40,7 @@ class GoogleCalendarService {
       });
 
       const events = response.data.items || [];
-      console.log(`Found ${events.length} events for calendar ${calendarId}`);
+      console.log(`Found ${events.length} events for calendar ${sanitizeCalendarId(calendarId)}`);
       
       return {
         events: events.filter(event => !event.cancelled),
@@ -48,7 +49,7 @@ class GoogleCalendarService {
         calendarId: calendarId
       };
     } catch (error) {
-      console.error(`Error fetching calendar events for ${calendarId}:`, error);
+      console.error(`Error fetching calendar events for ${sanitizeCalendarId(calendarId)}:`, error);
       throw error;
     }
   }
@@ -62,7 +63,7 @@ class GoogleCalendarService {
         const weeklyData = await this.getWeeklyEventsForCalendar(calendarId);
         results.push(weeklyData);
       } catch (error) {
-        console.error(`Failed to fetch events for calendar ${calendarId}:`, error.message);
+        console.error(`Failed to fetch events for calendar ${sanitizeCalendarId(calendarId)}:`, error.message);
         errors.push({
           calendarId,
           error: error.message
