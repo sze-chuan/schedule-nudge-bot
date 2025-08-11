@@ -228,15 +228,56 @@ class MessageService {
     const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     
     events.forEach(event => {
-      // Parse date in Singapore timezone to get correct day
       const startDateTime = event.start.dateTime || event.start.date;
-      const luxonDate = DateTime.fromISO(startDateTime).setZone('Asia/Singapore');
-      const dayName = luxonDate.weekdayLong;
+      const endDateTime = event.end.dateTime || event.end.date;
       
-      if (!grouped[dayName]) {
-        grouped[dayName] = [];
+      const startDate = DateTime.fromISO(startDateTime).setZone('Asia/Singapore');
+      const endDate = DateTime.fromISO(endDateTime).setZone('Asia/Singapore');
+      
+      // Check if this is a multi-day event
+      const isAllDay = !!event.start.date;
+      let daysDiff;
+      
+      if (isAllDay) {
+        // For all-day events, end date is exclusive, so subtract 1 day
+        daysDiff = endDate.minus({ days: 1 }).diff(startDate, 'days').days;
+      } else {
+        // For timed events, check if start and end are on different days
+        daysDiff = endDate.startOf('day').diff(startDate.startOf('day'), 'days').days;
       }
-      grouped[dayName].push(event);
+      
+      if (daysDiff > 0) {
+        // Multi-day event - create entries for each day
+        const totalDays = daysDiff + 1;
+        for (let dayOffset = 0; dayOffset <= daysDiff; dayOffset++) {
+          const currentDate = startDate.plus({ days: dayOffset });
+          const dayName = currentDate.weekdayLong;
+          
+          if (!grouped[dayName]) {
+            grouped[dayName] = [];
+          }
+          
+          // Create a copy of the event with multi-day metadata
+          const eventCopy = {
+            ...event,
+            _multiDay: {
+              currentDay: dayOffset + 1,
+              totalDays: totalDays,
+              isMultiDay: true
+            }
+          };
+          
+          grouped[dayName].push(eventCopy);
+        }
+      } else {
+        // Single-day event - handle normally
+        const dayName = startDate.weekdayLong;
+        
+        if (!grouped[dayName]) {
+          grouped[dayName] = [];
+        }
+        grouped[dayName].push(event);
+      }
     });
 
     // Sort events within each day: all-day events first, then timed events by start time
@@ -260,20 +301,30 @@ class MessageService {
   }
 
   formatEventTime(event) {
+    let timeString;
+    
     if (event.start.date) {
-      return 'All day';
+      // All-day event
+      timeString = 'All day';
+    } else {
+      // Timed event - format times in Singapore timezone
+      const startTime = DateTime.fromISO(event.start.dateTime)
+        .setZone('Asia/Singapore')
+        .toFormat('h:mm a');
+      
+      const endTime = DateTime.fromISO(event.end.dateTime)
+        .setZone('Asia/Singapore')
+        .toFormat('h:mm a');
+      
+      timeString = `${startTime} - ${endTime}`;
     }
     
-    // Parse and format times in Singapore timezone
-    const startTime = DateTime.fromISO(event.start.dateTime)
-      .setZone('Asia/Singapore')
-      .toFormat('h:mm a');
+    // Add multi-day indicator if this is a multi-day event
+    if (event._multiDay && event._multiDay.isMultiDay) {
+      timeString += ` [Day ${event._multiDay.currentDay}/${event._multiDay.totalDays}]`;
+    }
     
-    const endTime = DateTime.fromISO(event.end.dateTime)
-      .setZone('Asia/Singapore')
-      .toFormat('h:mm a');
-    
-    return `${startTime} - ${endTime}`;
+    return timeString;
   }
 
   formatWeekDateRange(startDate, endDate) {
